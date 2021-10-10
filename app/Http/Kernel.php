@@ -2,6 +2,7 @@
 
 namespace App\Http;
 
+use App\Http\Middleware\Registry;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -44,6 +45,8 @@ class Kernel extends HttpKernel
             'throttle:api', // Throttling might give issues? Might just need to remove this
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ],
+
+        'node' => []
     ];
 
     /**
@@ -63,5 +66,6 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
+        'registry' => Registry::class
     ];
 }

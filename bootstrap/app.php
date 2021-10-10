@@ -11,6 +11,9 @@
 |
 */
 
+// I am personally more of a fan f hiding this. Especially since we're communicating with none-php components
+header_remove('X-Powered-By');
+
 $app = new Illuminate\Foundation\Application(
     $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );

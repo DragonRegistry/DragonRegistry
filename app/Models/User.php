@@ -32,4 +32,9 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
     ];
+
+    public function role(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
 }
