@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Node\AuthController;
 use App\Http\Controllers\Node\PackageController;
 use App\Http\Controllers\Node\SystemController;
 use Illuminate\Support\Facades\Route;
@@ -38,5 +39,8 @@ Route::middleware('registry')->group(function () {
      * For now, I'll disregard this function, hence the odd parameters passed to it
      */
 //    Route::get('/-/v1/search', [PackageController::class, '']);
+
+    Route::post('/-/v1/login', [AuthController::class, 'login']);
+    Route::put('/-/user/org.couchdb.user:{username}', [AuthController::class, 'putUser']);
 });
 

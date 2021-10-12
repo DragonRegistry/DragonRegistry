@@ -32,6 +32,10 @@ class PackageController extends NodeController
 
     public function getPackageInfo($package)
     {
+        if(strpos($package, "%2f") !== false) {
+            $exploded = explode("%2f", $package);
+            $package = "@$exploded[0]/$exploded[1]";
+        }
         $verify = $this->verifyPackage($package);
         if($verify === false)
             return $this->error('Not found', 404);
@@ -49,6 +53,10 @@ class PackageController extends NodeController
 
     public function getPackageVersionInfo($package, $version)
     {
+        if(strpos($package, "%2f") !== false) {
+            $exploded = explode("%2f", $package);
+            $package = "@$exploded[0]/$exploded[1]";
+        }
         $verify = $this->verifyPackage($package, $version);
         if($verify === false || empty($verify[1]))
             return $this->error('Not found', 404);
@@ -67,6 +75,10 @@ class PackageController extends NodeController
 
     public function downloadPackage($package, $tarname)
     {
+        if(strpos($package, "%2f") !== false) {
+            $exploded = explode("%2f", $package);
+            $package = "@$exploded[0]/$exploded[1]";
+        }
         if(!Str::endsWith($tarname, ".tar.gz"))
             return $this->error('Not found', 404);
         $fileName = Str::remove(".tar.gz", $tarname);
