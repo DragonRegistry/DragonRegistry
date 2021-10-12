@@ -28,13 +28,13 @@ Route::middleware('registry')->group(function () {
      */
 //    Route::get('/-/all', [SystemController::class, '']);
     Route::get('/', [SystemController::class, 'system']);
+    Route::get('/{package}@{version}', [PackageController::class, 'getPackageVersionInfo']);
     Route::get('/{package}', [PackageController::class, 'getPackageInfo']);
+    Route::get('/@{scope}/{package}@{version}', [PackageController::class, 'getScopedPackageVersionInfo']);
     Route::get('/@{scope}/{package}', [PackageController::class, 'getScopedPackageInfo']);
-    Route::get('/{package}/{version}', [PackageController::class, 'getPackageVersionInfo']);
-    Route::get('/@{scope}/{package}/{version}', [PackageController::class, 'getScopedPackageVersionInfo']);
 
-    Route::get('/{package}/-/{tarname}', [PackageController::class, 'downloadPackage']);
-    Route::get('/@{scope}/{package}/-/{tarname}', [PackageController::class, 'downloadScopedPackage']);
+    Route::get('/{package}/{version}/{tarname}', [PackageController::class, 'downloadPackage']);
+    Route::get('/@{scope}/{package}/{version}/{tarname}', [PackageController::class, 'downloadScopedPackage']);
     /**
      * For now, I'll disregard this function, hence the odd parameters passed to it
      */

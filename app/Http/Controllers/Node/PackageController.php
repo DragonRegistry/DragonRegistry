@@ -9,15 +9,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Laravel\Sanctum\PersonalAccessToken;
 
 class PackageController extends NodeController
 {
     private function verifyPackage($package, string $versionTag = null)
     {
+        if (strpos($package, "%2f") !== false) {
+            $exploded = explode("%2f", $package);
+            $package = "@$exploded[0]/$exploded[1]";
+        }
         $package = Package::query()->where('type', 'node')->where('name', $package)->first();
         if (empty($package))
             return false;
-        if(!empty($versionTag)) {
+        if (!empty($versionTag)) {
             if ($versionTag == 'latest')
                 $version = PackageVersion::query()
                     ->where('package_id', $package->id)->orderByDesc('id')->first();
@@ -32,12 +37,17 @@ class PackageController extends NodeController
 
     public function getPackageInfo($package)
     {
-        if(strpos($package, "%2f") !== false) {
-            $exploded = explode("%2f", $package);
-            $package = "@$exploded[0]/$exploded[1]";
-        }
+        /**
+         * Example of how to check auth:
+        $pat = PersonalAccessToken::findToken(\request()->bearerToken());
+        if (!$pat)
+            return $this->error('Unauthorized', 401);
+        $user = $pat->tokenable();
+        if (!$user)
+            return $this->error('Unauthorized', 401);
+         */
         $verify = $this->verifyPackage($package);
-        if($verify === false)
+        if ($verify === false)
             return $this->error('Not found', 404);
         $package = $verify[0];
         $path = storage_path("node" . DIRECTORY_SEPARATOR . $package->storage_path . DIRECTORY_SEPARATOR . "package.json");
@@ -53,12 +63,8 @@ class PackageController extends NodeController
 
     public function getPackageVersionInfo($package, $version)
     {
-        if(strpos($package, "%2f") !== false) {
-            $exploded = explode("%2f", $package);
-            $package = "@$exploded[0]/$exploded[1]";
-        }
         $verify = $this->verifyPackage($package, $version);
-        if($verify === false || empty($verify[1]))
+        if ($verify === false || empty($verify[1]))
             return $this->error('Not found', 404);
         $package = $verify[0];
         $version = $verify[1];
@@ -73,19 +79,11 @@ class PackageController extends NodeController
         return $this->getPackageVersionInfo("@$scope/$package", $version);
     }
 
-    public function downloadPackage($package, $tarname)
+    public function downloadPackage($package, $version, $tarname)
     {
-        if(strpos($package, "%2f") !== false) {
-            $exploded = explode("%2f", $package);
-            $package = "@$exploded[0]/$exploded[1]";
-        }
-        if(!Str::endsWith($tarname, ".tar.gz"))
-            return $this->error('Not found', 404);
-        $fileName = Str::remove(".tar.gz", $tarname);
-        $version = Str::afterLast($fileName, "-");
         $verify = $this->verifyPackage($package, $version);
-        if($verify === false || empty($verify[1]))
-            return $this->error('Not found', 404);
+        if ($verify === false || empty($verify[1]))
+            return $this->error('Not found!', 404);
         $package = $verify[0];
         $version = $verify[1];
         $path = storage_path("node" . DIRECTORY_SEPARATOR . $package->storage_path . DIRECTORY_SEPARATOR . $version->version . DIRECTORY_SEPARATOR . "package.tar.gz");
@@ -94,8 +92,8 @@ class PackageController extends NodeController
         return response()->download($path, $package->getTag() . "-" . $version->version . ".tar.gz");
     }
 
-    public function downloadScopedPackage($scope, $package, $tarname)
+    public function downloadScopedPackage($scope, $package, $version, $tarname)
     {
-        return $this->downloadPackage("@$scope/$package", $tarname);
+        return $this->downloadPackage("@$scope/$package", $version, $tarname);
     }
 }

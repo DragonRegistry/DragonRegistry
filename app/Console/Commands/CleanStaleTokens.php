@@ -33,6 +33,7 @@ class CleanStaleTokens extends Command
             return;
         PersonalAccessToken::query()
             ->whereDate('last_used_at', '<', now()->subDays(config('sanctum.stale')))
+            ->orWhereNull('last_used_at')
             ->delete();
     }
 }
