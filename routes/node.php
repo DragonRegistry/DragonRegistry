@@ -27,14 +27,24 @@ Route::middleware('registry')->group(function () {
      * @url https://blog.npmjs.org/post/157615772423/deprecating-the-all-registry-endpoint.html
      */
 //    Route::get('/-/all', [SystemController::class, '']);
+    Route::get('/-/ping', function () {
+        return [];
+    });
     Route::get('/', [SystemController::class, 'system']);
-    Route::get('/{package}@{version}', [PackageController::class, 'getPackageVersionInfo']);
-    Route::get('/{package}', [PackageController::class, 'getPackageInfo']);
-    Route::get('/@{scope}/{package}@{version}', [PackageController::class, 'getScopedPackageVersionInfo']);
-    Route::get('/@{scope}/{package}', [PackageController::class, 'getScopedPackageInfo']);
+    Route::get('/{package}@{version}', [PackageController::class, 'getVersionInfo']);
+    Route::get('/{package}', [PackageController::class, 'getInfo']);
+    Route::get('/@{scope}/{package}@{version}', [PackageController::class, 'getScopedVersionInfo']);
+    Route::get('/@{scope}/{package}', [PackageController::class, 'getScopedInfo']);
 
-    Route::get('/{package}/{version}/{tarname}', [PackageController::class, 'downloadPackage']);
-    Route::get('/@{scope}/{package}/{version}/{tarname}', [PackageController::class, 'downloadScopedPackage']);
+    Route::get('/{package}/{version}/{tarname}', [PackageController::class, 'download']);
+    Route::get('/@{scope}/{package}/{version}/{tarname}', [PackageController::class, 'downloadScoped']);
+
+    Route::put('/{package}', [PackageController::class, 'put']);
+    Route::put('/{package}/-rev/{dummy}', [PackageController::class, 'put']);
+    Route::put('/@{scope}/{package}', [PackageController::class, 'putScoped']);
+    Route::put('/@{scope}/{package}/-rev/{dummy}', [PackageController::class, 'putScoped']);
+    Route::delete('/{package}/-rev/undefined', [PackageController::class, 'delete']);
+    Route::delete('/@{scope}/{package}/-rev/undefined', [PackageController::class, 'deleteScoped']);
     /**
      * For now, I'll disregard this function, hence the odd parameters passed to it
      */
@@ -42,5 +52,8 @@ Route::middleware('registry')->group(function () {
 
     Route::post('/-/v1/login', [AuthController::class, 'login']);
     Route::put('/-/user/org.couchdb.user:{username}', [AuthController::class, 'putUser']);
+    Route::delete('/-/user/token/{token}', function () {
+        return []; // Could clean the token, but will be auto cleaned also
+    });
 });
 
