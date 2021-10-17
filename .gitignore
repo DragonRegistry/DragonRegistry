@@ -6,6 +6,7 @@ yarn-error.log
 /.idea
 /public/js/app.js*
 /public/css/app.css*
+/public/log.txt
 
 # Laravel 4 specific
 bootstrap/compiled.php
