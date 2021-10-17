@@ -14,21 +14,16 @@ class RolesTableSeeder extends Seeder
      */
     public function run()
     {
-        $roles = Role::all()->keyBy('id');
-        if(!$roles->get(1))
-            Role::query()->create([
-                'id' => 1,
-                'name' => 'normal'
-            ]);
-        if(!$roles->get(2))
-            Role::query()->create([
-                'id' => 2,
-                'name' => 'verified'
-            ]);
-        if(!$roles->get(3))
-            Role::query()->create([
-                'id' => 3,
-                'name' => 'admin'
-            ]);
+        $roles = Role::query()->pluck('id')->all();
+        foreach ([
+                     Role::ROLE_NORMAL_ID   => 'normal',
+                     Role::ROLE_VERIFIED_ID => 'verified',
+                     Role::ROLE_ADMIN_ID    => 'admin',
+                 ] as $id => $name)
+            if (!$roles->get($id))
+                Role::query()->create([
+                    'id'    => $id,
+                    'name'  => $name
+                ]);
     }
 }

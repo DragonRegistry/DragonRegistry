@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -17,7 +18,7 @@ class PackageController extends NodeController
 {
     private function verify($package, string $versionTag = null)
     {
-        if (strpos($package, "%2f") !== false) {
+        if (str_contains($package, "%2f")) {
             $exploded = explode("%2f", $package);
             $package = (Str::startsWith($exploded[0], "@") ? "" : "@") . "$exploded[0]/$exploded[1]";
         }
@@ -81,7 +82,7 @@ class PackageController extends NodeController
         return $this->getVersionInfo("@$scope/$package", $version);
     }
 
-    public function download($package, $version, $tarname)
+    public function download($package, $version)
     {
         $verify = $this->verify($package, $version);
         if ($verify === false || empty($verify[1]))
@@ -94,23 +95,16 @@ class PackageController extends NodeController
         return response()->download($path, $package->getTag() . "-" . $version->version . ".tar.gz");
     }
 
-    public function downloadScoped($scope, $package, $version, $tarname)
+    public function downloadScoped($scope, $package, $version)
     {
-        return $this->download("@$scope/$package", $version, $tarname);
+        return $this->download("@$scope/$package", $version);
     }
 
     public function put(Request $request, $package)
     {
-        $pat = PersonalAccessToken::findToken(\request()->bearerToken());
-        if (!$pat)
-            return $this->error('Unauthorized', 401);
-        $user = $pat->tokenable;
-        if (!$user)
-            return $this->error('Unauthorized', 401);
-        Auth::login($user);
         $verify = $this->verify($package);
         if ($verify != false && !empty($verify[0])) {
-            if ($verify[0]->creator_user_id != Auth::id())
+            if(Gate::inspect('update', $verify[0])->denied())
                 return $this->error('Forbidden', 403);
 
             $packageVersions = $verify[0]->versions;
@@ -132,13 +126,6 @@ class PackageController extends NodeController
 
     public function delete(Request $request, $package)
     {
-        $pat = PersonalAccessToken::findToken(\request()->bearerToken());
-        if (!$pat)
-            return $this->error('Unauthorized', 401);
-        $user = $pat->tokenable;
-        if (!$user)
-            return $this->error('Unauthorized', 401);
-        Auth::login($user);
         $verify = $this->verify($package);
         if($verify != false && !empty($verify[0])) {
             if ($verify[0]->creator_user_id != Auth::id())
@@ -186,12 +173,16 @@ class PackageController extends NodeController
     private function publish(Request $request, $packageTag, $verify)
     {
         if ($verify === false || empty($verify[0])) {
-            if (strpos($packageTag, "%2f") !== false) {
+            if (str_contains($packageTag, "%2f")) {
                 $exploded = explode("%2f", $packageTag);
                 $packageTag = "@$exploded[0]/$exploded[1]";
             }
+            if(Gate::inspect('create', [Package::class, $packageTag])->denied())
+                return $this->error('Forbidden', 403);
             $package = Package::Initialize($packageTag);
         } else {
+            if(!Gate::authorize('update', $verify[0]))
+                return $this->error('Forbidden', 403);
             $package = $verify[0];
         }
         $body = $request->all();

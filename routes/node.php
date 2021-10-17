@@ -39,12 +39,14 @@ Route::middleware('registry')->group(function () {
     Route::get('/{package}/{version}/{tarname}', [PackageController::class, 'download']);
     Route::get('/@{scope}/{package}/{version}/{tarname}', [PackageController::class, 'downloadScoped']);
 
-    Route::put('/{package}', [PackageController::class, 'put']);
-    Route::put('/{package}/-rev/{dummy}', [PackageController::class, 'put']);
-    Route::put('/@{scope}/{package}', [PackageController::class, 'putScoped']);
-    Route::put('/@{scope}/{package}/-rev/{dummy}', [PackageController::class, 'putScoped']);
-    Route::delete('/{package}/-rev/undefined', [PackageController::class, 'delete']);
-    Route::delete('/@{scope}/{package}/-rev/undefined', [PackageController::class, 'deleteScoped']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::put('/{package}', [PackageController::class, 'put']);
+        Route::put('/{package}/-rev/{dummy}', [PackageController::class, 'put']);
+        Route::put('/@{scope}/{package}', [PackageController::class, 'putScoped']);
+        Route::put('/@{scope}/{package}/-rev/{dummy}', [PackageController::class, 'putScoped']);
+        Route::delete('/{package}/-rev/undefined', [PackageController::class, 'delete']);
+        Route::delete('/@{scope}/{package}/-rev/undefined', [PackageController::class, 'deleteScoped']);
+    });
     /**
      * For now, I'll disregard this function, hence the odd parameters passed to it
      */
